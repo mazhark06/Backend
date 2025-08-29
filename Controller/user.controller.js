@@ -180,13 +180,13 @@ const verifyEmail = async (req, res) => {
 
     return res
       .cookie("refreshToken", refeshToken, {
-        secure: false, // true if using HTTPS
+        secure: true, // true if using HTTPS
         maxAge: 24 * 7 * 60 * 60 * 1000,
         httpOnly: true, // for security, set to true
         sameSite: "Strict", // or 'Strict' if using HTTPS and cross-origin
       })
       .cookie("accessToken", accessToken, {
-        secure: false, // true if using HTTPS
+        secure: true, // true if using HTTPS
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true, // for security, set to true
         sameSite: "Strict", // or 'Strict' if using HTTPS and cross-origin

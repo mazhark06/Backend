@@ -16,7 +16,8 @@ const refreshTokensMiddleware = async (req, res, next) => {
 
   try {
     let accessToken = req.cookies.accessToken;
-
+    console.log(accessToken);
+    
     if (!accessToken) {
       let refreshToken = req.cookies.refreshToken;
 
