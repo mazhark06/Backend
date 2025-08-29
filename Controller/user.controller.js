@@ -189,7 +189,7 @@ const verifyEmail = async (req, res) => {
         secure: true, // true if using HTTPS
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true, // for security, set to true
-        sameSite: "Strict", // or 'Strict' if using HTTPS and cross-origin
+        sameSite: "none", // or 'Strict' if using HTTPS and cross-origin
       })
       .json(new Apiresponse(true, false, "Registerd successfully"));
   } catch (error) {
