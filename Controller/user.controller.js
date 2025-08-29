@@ -183,7 +183,7 @@ const verifyEmail = async (req, res) => {
         secure: true, // true if using HTTPS
         maxAge: 24 * 7 * 60 * 60 * 1000,
         httpOnly: true, // for security, set to true
-        sameSite: "Strict", // or 'Strict' if using HTTPS and cross-origin
+        sameSite: "none", // or 'none' if using HTTPS and cross-origin
       })
       .cookie("accessToken", accessToken, {
         secure: true, // true if using HTTPS
