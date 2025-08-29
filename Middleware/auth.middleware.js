@@ -13,6 +13,8 @@ import {
 
 const refreshTokensMiddleware = async (req, res, next) => {
   let refeshTokenDecoded;
+  console.log(req);
+  
 
   try {
     let accessToken = req.cookies.accessToken;
