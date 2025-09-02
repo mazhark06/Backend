@@ -11,7 +11,6 @@ import generateOTP from "../utils/generateOTP.js";
 const userSignup = async function (req, res) {
   try {
     let { username, email, password } = req.body;
-console.log('1');
 
     if (!username || !password || !email)
       return res
@@ -19,7 +18,6 @@ console.log('1');
         .json(
           new Apiresponse(false, true, "All fields are required", req.body.data)
         );
-console.log('2');
 
     //Validation of user if He/She already exists
     let ExistingUsername = await User.findOne({ username: username }).select(
@@ -43,24 +41,22 @@ console.log('2');
       return res
         .status(401)
         .json(
-          new Apiresponse(false, true, `Email Already Exist`, ExistingEmail)
+          new Apiresponse(false, true, `Email Already Exist`,{email:email})
         );
-console.log('4');
 
     // Submitting User
-    let submitUser = await User.insertOne({
+    let submitUser = await User.create({
       username: username,
       password: password,
       email: email,
     });
-console.log("5");
 
     let OTP = await generateOTP(submitUser);
 
     await mail(email, "OTP Verification", mailTemplate(OTP));
     res
       .status(200)
-      .json(new Apiresponse(true, false, "Registerd successfully", {email}));
+      .json(new Apiresponse(true, false, "Registerd successfully", { email }));
   } catch (error) {
     console.log("ERROR : SIGNUP ROUTE ", error);
     res
@@ -72,22 +68,22 @@ console.log("5");
 const userLogin = async function (req, res) {
   try {
     let { username, password } = req.body;
-    if (!username || !password)
-      return res
+    if (!username || !password) return res
         .status(404)
         .json(new Apiresponse(false, true, "All fields are required"));
 
     const ExistingUser = await User.findOne({
-      username: username,
+      $or:[
+        {email:username},
+        {username,username}
+      ]
     }).select(" +password");
-    if (!ExistingUser)
-      return res
-        .status(402)
-        .json(new Apiresponse(false, true, "User not Found"));
+
+    if (!ExistingUser)  return res.status(404).json(new Apiresponse(false, true, "User not Found"));
+
 
     let isValidPassword = await ExistingUser.comparePassword(password);
-    if (!isValidPassword)
-      return res
+    if (!isValidPassword) return res
         .status(402)
         .json(new Apiresponse(false, true, "Incorrect Password"));
 
@@ -133,6 +129,7 @@ const loginSkipper = async (req, res) => {
         })
         .json(new Apiresponse(true, false, "User Authenticated"));
     }
+    console.log(_id);
 
     return res
       .status(200)
@@ -147,18 +144,26 @@ const loginSkipper = async (req, res) => {
 
 const homePage = async (req, res) => {
   let usersData = await User.findById(req.user);
-
-  res.status(200).json({ usersData });
+return  res
+    .status(200)
+    .json(
+      new Apiresponse(true, false, "authenticated fir homepage ", { usersData })
+    );
 };
 
 const verifyEmail = async (req, res) => {
   try {
-    
     let { email, OTP } = req.body;
-    if(!email || !OTP ) return res.status(400).json(new Apiresponse(false,true,'All fields are required'))
+    if (!email || !OTP)
+      return res
+        .status(400)
+        .json(new Apiresponse(false, true, "All fields are required"));
     let user = await User.findOne({ email: email });
-    if(!user) return res.status(400).json(new Apiresponse(false,true,'User not found'))
-    
+    if (!user)
+      return res
+        .status(400)
+        .json(new Apiresponse(false, true, "User not found"));
+
     let generateTime = new Date(Date.now());
 
     if (user.otp_expireAt <= generateTime)
@@ -180,16 +185,16 @@ const verifyEmail = async (req, res) => {
 
     return res
       .cookie("refreshToken", refeshToken, {
-        secure: true, // true if using HTTPS
+        secure: false, // true if using HTTPS
         maxAge: 24 * 7 * 60 * 60 * 1000,
         httpOnly: true, // for security, set to true
-        sameSite: "none", // or 'none' if using HTTPS and cross-origin
+        sameSite: "Strict", // or 'Strict' if using HTTPS and cross-origin
       })
       .cookie("accessToken", accessToken, {
-        secure: true, // true if using HTTPS
+        secure: false, // true if using HTTPS
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true, // for security, set to true
-        sameSite: "none", // or 'Strict' if using HTTPS and cross-origin
+        sameSite: "Strict", // or 'Strict' if using HTTPS and cross-origin
       })
       .json(new Apiresponse(true, false, "Registerd successfully"));
   } catch (error) {
@@ -200,27 +205,34 @@ const verifyEmail = async (req, res) => {
   }
 };
 const resendOTP = async (req, res) => {
-try {
-   let { email} = req.body;
+  try {
+    let { email } = req.body;
     let user = await User.findOne({ email: email });
 
-     let OTP = await generateOTP(user);
-      await mail(email, "OTP Verification", mailTemplate(OTP));
+    let OTP = await generateOTP(user);
+    await mail(email, "OTP Verification", mailTemplate(OTP));
 
-      res.status(200).
-      json(new Apiresponse(true))
-
-    
-} catch (error) {
-   console.log("ERROR : RESEND OTP ",error);
+    res.status(200).json(new Apiresponse(true));
+  } catch (error) {
+    console.log("ERROR : RESEND OTP ", error);
     res
       .status(500)
-      .json(new Apiresponse(false, true, "Internal server error.."));
-}
-
-
+      .json(new Apiresponse(false, true, "Internal server error..",error));
+  }
 };
 
+const userLogout = async (req, res) => {
+  try {
+    res.clearCookie("refreshToken").clearCookie("accessToken");
+  res.status(200).json(new Apiresponse(true,false,"Successfully Logout"))
+
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json(new Apiresponse(false, true, "INTERNAL SERVER ERROR", error));
+  }
+};
 
 export {
   userSignup,
@@ -229,4 +241,5 @@ export {
   homePage,
   verifyEmail,
   resendOTP,
+  userLogout
 };

@@ -50,7 +50,7 @@ let verifyRefreshToken = async (token) => {
 let verifyAccessToken = async (token) => {
   
   try {
-    
+    if(!token) return
     let validToken = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     return validToken
 

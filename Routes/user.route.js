@@ -6,6 +6,7 @@ import {
   homePage,
   verifyEmail,
   resendOTP,
+  userLogout,
 } from "../Controller/user.controller.js";
 import { ensureAuth } from "../Middleware/auth.middleware.js";
 const userRouter = express.Router();
@@ -18,5 +19,5 @@ userRouter.post("/resend-OTP", resendOTP);
 // Protected Route
 userRouter.get("/auth", loginSkipper); //Login Page Skip Route
 userRouter.get("/api", ensureAuth, homePage); // User authenticated filter
-
+userRouter.get('/logout' , ensureAuth ,userLogout) //Logout
 export default userRouter;

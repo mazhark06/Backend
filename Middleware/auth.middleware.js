@@ -13,12 +13,11 @@ import {
 
 const refreshTokensMiddleware = async (req, res, next) => {
   let refeshTokenDecoded;
-  console.log(req);
   
 
   try {
-    let accessToken = req.cookies.accessToken;
-    console.log(accessToken);
+   let accessToken = req.cookies.accessToken;
+    // console.log(accessToken);
     
     if (!accessToken) {
       let refreshToken = req.cookies.refreshToken;
@@ -28,16 +27,16 @@ const refreshTokensMiddleware = async (req, res, next) => {
       refeshTokenDecoded = await verifyRefreshToken(refreshToken);
 
 
-      let accessToken = await generateAccessToken(refeshTokenDecoded);
+     accessToken = await generateAccessToken(refeshTokenDecoded);
 
       req.accessToken = accessToken;
       req.user = refeshTokenDecoded._id;
 
       next();
     }
+    
 
     let decoded = await verifyAccessToken(accessToken);
-
     req.user = decoded._id;
     next();
   } catch (error) {
@@ -48,6 +47,7 @@ const refreshTokensMiddleware = async (req, res, next) => {
 
 const ensureAuth = async (req, res, next) => {
   try {
+    
     if (!req.user) return res
         .status(401)
         .json(new Apiresponse(false, true, "User not Authorized"));
